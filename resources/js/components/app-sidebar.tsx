@@ -39,17 +39,17 @@ const succursaleNavItems: NavItem[] = [
     },
     {
         title: 'Saisie des données',
-        href: dashboard(),
+        href: '/succursale/saisie',
         icon: ArrowUpDown,
     },
     {
         title: 'Rapports financiers',
-        href: dashboard(),
+        href: '/succursale/rapports',
         icon: FileBarChart2,
     },
     {
         title: 'Historique',
-        href: dashboard(),
+        href: '/succursale/historique',
         icon: Archive,
     },
 ];
@@ -58,22 +58,22 @@ const succursaleNavItems: NavItem[] = [
 const siegeNavItems: NavItem[] = [
     {
         title: 'Analyse KPIs',
-        href: dashboard(),
+        href: '/siege/analyse',
         icon: TrendingUp,
     },
     {
         title: 'Succursales',
-        href: dashboard(),
+        href: '/siege/succursales',
         icon: Building2,
     },
     {
         title: 'Comparatif',
-        href: dashboard(),
+        href: '/siege/comparatif',
         icon: BarChart3,
     },
     {
         title: 'Générer rapport',
-        href: dashboard(),
+        href: '/siege/rapports',
         icon: FileBarChart2,
     },
 ];
@@ -87,12 +87,12 @@ const footerNavItems: NavItem[] = [
     },
     {
         title: 'Documentation',
-        href: dashboard(),
+        href: '/docs/DOCUMENTATION.md',
         icon: BookOpen,
     },
     {
         title: 'Paramètres',
-        href: dashboard(),
+        href: '/settings/profile',
         icon: Settings,
     },
 ];
@@ -116,36 +116,22 @@ export function AppSidebar() {
             {/* ── Main content ───────────────────────────────── */}
             <SidebarContent>
                 {/* Succursale section */}
-                <SidebarGroup>
-                    <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60">
-                        Succursale
-                    </SidebarGroupLabel>
-                    <NavMain items={succursaleNavItems} />
-                </SidebarGroup>
+                <NavMain items={succursaleNavItems} label="Succursale" />
 
                 {/* Siège Central section */}
-                <SidebarGroup>
-                    <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60">
-                        Siège Central
-                    </SidebarGroupLabel>
-                    <NavMain items={siegeNavItems} />
-                </SidebarGroup>
+                <NavMain items={siegeNavItems} label="Siège Central" />
 
-                {/* Admin section */}
-                <SidebarGroup>
-                    <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60">
-                        Administration
-                    </SidebarGroupLabel>
-                    <NavMain
-                        items={[
-                            {
-                                title: 'Supervision système',
-                                href: dashboard(),
-                                icon: ShieldCheck,
-                            },
-                        ]}
-                    />
-                </SidebarGroup>
+                {/* Administration section */}
+                <NavMain
+                    items={[
+                        {
+                            title: 'Supervision système',
+                            href: '/admin/supervision',
+                            icon: ShieldCheck,
+                        },
+                    ]}
+                    label="Administration"
+                />
             </SidebarContent>
 
             {/* ── Footer ─────────────────────────────────────── */}
