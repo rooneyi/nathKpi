@@ -69,41 +69,14 @@ export default function SiegeRapports() {
                 <Card className="shadow-none">
                     <CardHeader>
                         <CardTitle className="text-base">Historique des Rapports Générés</CardTitle>
-                        <CardDescription>Liste des derniers rapports générés par le système.</CardDescription>
+                        <CardDescription>
+                            Lorsque des rapports seront générés, ils apparaîtront ici.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                                <div className="flex items-center gap-3">
-                                    <FileText className="size-5 text-blue-500" />
-                                    <div>
-                                        <p className="text-sm font-medium">Rapport_Synthese_Mars_2026.pdf</p>
-                                        <p className="text-xs text-muted-foreground">Généré le 04/04/2026</p>
-                                    </div>
-                                </div>
-                                <Badge className="bg-emerald-500/10 text-emerald-600"><CheckCircle2 className="size-3 mr-1" />Prêt</Badge>
-                            </div>
-                            <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                                <div className="flex items-center gap-3">
-                                    <FileText className="size-5 text-blue-500" />
-                                    <div>
-                                        <p className="text-sm font-medium">Rapport_Detaille_Fevrier_2026.pdf</p>
-                                        <p className="text-xs text-muted-foreground">Généré le 01/03/2026</p>
-                                    </div>
-                                </div>
-                                <Badge className="bg-emerald-500/10 text-emerald-600"><CheckCircle2 className="size-3 mr-1" />Prêt</Badge>
-                            </div>
-                            <div className="flex items-center justify-between p-3 rounded-lg border bg-card opacity-50">
-                                <div className="flex items-center gap-3">
-                                    <FileText className="size-5 text-muted-foreground" />
-                                    <div>
-                                        <p className="text-sm font-medium">Rapport_KPIs_Janvier_2026.pdf</p>
-                                        <p className="text-xs text-muted-foreground">En génération...</p>
-                                    </div>
-                                </div>
-                                <Badge variant="secondary"><Clock className="size-3 mr-1" />En cours</Badge>
-                            </div>
-                        </div>
+                        <p className="text-sm text-muted-foreground">
+                            Aucun historique disponible pour le moment.
+                        </p>
                     </CardContent>
                 </Card>
             </div>

@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { dashboard } from '@/routes';
+import { valider as siegeValider, rejeter as siegeRejeter } from '@/routes/siege';
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import {
@@ -109,7 +110,7 @@ export default function DashboardSiege() {
     });
 
     const handleValider = (rapportId: number) => {
-        post(route('siege.valider', { id: rapportId }), {
+        post(siegeValider(rapportId).url, {
             preserveScroll: true,
         });
     };
@@ -122,7 +123,7 @@ export default function DashboardSiege() {
 
     const handleRejeter = () => {
         if (selectedRapport && motifRejet.trim()) {
-            post(route('siege.rejeter', { id: selectedRapport.id }), {
+            post(siegeRejeter(selectedRapport.id).url, {
                 data: { motif: motifRejet },
                 preserveScroll: true,
                 onSuccess: () => {
