@@ -11,6 +11,7 @@ import {
     ShieldCheck,
     Bell,
     BookOpen,
+    Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -32,11 +33,6 @@ import type { NavItem } from '@/types';
 
 // ── Navigation principale (Succursale) ─────────────────────────────────────────
 const succursaleNavItems: NavItem[] = [
-    {
-        title: 'Tableau de bord',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
     {
         title: 'Saisie des données',
         href: '/succursale/saisie',
@@ -76,6 +72,35 @@ const siegeNavItems: NavItem[] = [
         href: '/siege/rapports',
         icon: FileBarChart2,
     },
+    {
+        title: 'Validation des rapports',
+        href: '/siege/validation',
+        icon: ShieldCheck,
+    },
+];
+
+// ── Navigation Admin ───────────────────────────────────────────────────────────
+const adminNavItems: NavItem[] = [
+    {
+        title: 'Supervision système',
+        href: '/admin/supervision',
+        icon: ShieldCheck,
+    },
+    {
+        title: 'Succursales & performances',
+        href: '/siege/succursales',
+        icon: Building2,
+    },
+    {
+        title: 'Utilisateurs',
+        href: '/admin/utilisateurs',
+        icon: Users,
+    },
+    {
+        title: 'Paramètres',
+        href: '/admin/parametres',
+        icon: Settings,
+    },
 ];
 
 // ── Footer nav ─────────────────────────────────────────────────────────────────
@@ -90,14 +115,12 @@ const footerNavItems: NavItem[] = [
         href: '/docs/DOCUMENTATION.md',
         icon: BookOpen,
     },
-    {
-        title: 'Paramètres',
-        href: '/settings/profile',
-        icon: Settings,
-    },
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage().props as { auth: { user: { role: string } } };
+    const userRole = auth?.user?.role ?? 'succursale';
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             {/* ── Logo / Header ──────────────────────────────── */}
@@ -115,23 +138,35 @@ export function AppSidebar() {
 
             {/* ── Main content ───────────────────────────────── */}
             <SidebarContent>
-                {/* Succursale section */}
-                <NavMain items={succursaleNavItems} label="Succursale" />
+                {/* Dashboard commun à tous */}
+                <SidebarGroup>
+                    <SidebarGroupLabel>Principal</SidebarGroupLabel>
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton asChild>
+                                <Link href={dashboard()}>
+                                    <LayoutGrid className="size-4" />
+                                    <span>Tableau de bord</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarGroup>
 
-                {/* Siège Central section */}
-                <NavMain items={siegeNavItems} label="Siège Central" />
+                {/* Succursale section - visible uniquement pour les succursales */}
+                {userRole === 'succursale' && (
+                    <NavMain items={succursaleNavItems} label="Ma Succursale" />
+                )}
 
-                {/* Administration section */}
-                <NavMain
-                    items={[
-                        {
-                            title: 'Supervision système',
-                            href: '/admin/supervision',
-                            icon: ShieldCheck,
-                        },
-                    ]}
-                    label="Administration"
-                />
+                {/* Siège Central section - visible pour siège et admin */}
+                {(userRole === 'siege' || userRole === 'admin') && (
+                    <NavMain items={siegeNavItems} label="Siège Central" />
+                )}
+
+                {/* Administration section - visible uniquement pour admin */}
+                {userRole === 'admin' && (
+                    <NavMain items={adminNavItems} label="Administration" />
+                )}
             </SidebarContent>
 
             {/* ── Footer ─────────────────────────────────────── */}

@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
+import { LogIn } from 'lucide-react';
 
 type Props = {
     status?: string;
@@ -23,8 +24,13 @@ export default function Login({
     canRegister,
 }: Props) {
     return (
-        <>
-            <Head title="Log in" />
+        <div className="flex flex-col gap-6">
+            <Head title="Connexion — KPIbank" />
+
+            <div className="flex flex-col gap-2">
+                <h1 className="text-2xl font-semibold tracking-tight">Accès au tableau de bord</h1>
+                <p className="text-sm text-muted-foreground">Entrez vos identifiants pour accéder aux indicateurs du réseau.</p>
+            </div>
 
             <Form
                 {...store.form()}
@@ -35,7 +41,7 @@ export default function Login({
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">Adresse email matricule</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -44,21 +50,22 @@ export default function Login({
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="email"
-                                    placeholder="email@example.com"
+                                    placeholder="matricule@kpibank.com"
+                                    className="bg-muted/30"
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password">Mot de passe</Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
                                             className="ml-auto text-sm"
                                             tabIndex={5}
                                         >
-                                            Forgot password?
+                                            Mot de passe oublié ?
                                         </TextLink>
                                     )}
                                 </div>
@@ -68,7 +75,8 @@ export default function Login({
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Password"
+                                    placeholder="••••••••"
+                                    className="bg-muted/30"
                                 />
                                 <InputError message={errors.password} />
                             </div>
@@ -79,26 +87,28 @@ export default function Login({
                                     name="remember"
                                     tabIndex={3}
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label htmlFor="remember" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    Se souvenir de moi
+                                </Label>
                             </div>
 
                             <Button
                                 type="submit"
-                                className="mt-4 w-full"
+                                className="mt-4 w-full h-11 bg-primary hover:bg-primary/90 transition-all font-semibold gap-2"
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
                             >
-                                {processing && <Spinner />}
-                                Log in
+                                {processing ? <Spinner className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+                                Se connecter
                             </Button>
                         </div>
 
                         {canRegister && (
                             <div className="text-center text-sm text-muted-foreground">
-                                Don't have an account?{' '}
-                                <TextLink href={register()} tabIndex={5}>
-                                    Sign up
+                                Vous n'avez pas de compte ?{' '}
+                                <TextLink href={register()} tabIndex={5} className="font-semibold text-primary underline-offset-4 hover:underline">
+                                    Demander un accès
                                 </TextLink>
                             </div>
                         )}
@@ -107,15 +117,15 @@ export default function Login({
             </Form>
 
             {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                <div className="mb-4 text-center text-sm font-medium text-green-600 bg-green-500/10 py-3 rounded-lg border border-green-500/20">
                     {status}
                 </div>
             )}
-        </>
+        </div>
     );
 }
 
 Login.layout = {
-    title: 'Log in to your account',
-    description: 'Enter your email and password below to log in',
+    title: 'Se connecter à KPIbank',
+    description: 'Plateforme unifiée de suivi des indicateurs financiers.',
 };

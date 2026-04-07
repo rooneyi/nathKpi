@@ -1,5 +1,4 @@
-import { Head } from '@inertiajs/react';
-import { usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import {
     TrendingUp,
     TrendingDown,
@@ -18,78 +17,67 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { dashboard } from '@/routes';
-import type { Auth } from '@/types';
 
-// ─── Mock data KPI ────────────────────────────────────────────────────────────
-const kpiCards = [
-    {
-        title: 'Résultat Net',
-        value: '4 825 000',
-        currency: 'USD',
-        change: +12.4,
-        icon: DollarSign,
-        color: 'text-emerald-500',
-        bg: 'bg-emerald-500/10',
-        border: 'border-emerald-500/20',
-    },
-    {
-        title: 'Dépôts Clients',
-        value: '38 200 000',
-        currency: 'USD',
-        change: +7.1,
-        icon: Users,
-        color: 'text-blue-500',
-        bg: 'bg-blue-500/10',
-        border: 'border-blue-500/20',
-    },
-    {
-        title: 'Crédits Accordés',
-        value: '21 950 000',
-        currency: 'USD',
-        change: -3.2,
-        icon: BarChart3,
-        color: 'text-amber-500',
-        bg: 'bg-amber-500/10',
-        border: 'border-amber-500/20',
-    },
-    {
-        title: 'Taux de Recouvrement',
-        value: '91.4',
-        currency: '%',
-        change: +2.1,
-        icon: Activity,
-        color: 'text-violet-500',
-        bg: 'bg-violet-500/10',
-        border: 'border-violet-500/20',
-    },
-];
+interface Succursale {
+    id: number;
+    nom: string;
+    code: string;
+    ville: string;
+    score: number;
+    alertes: string[];
+    statut: string;
+}
 
-const branchPerformances = [
-    { name: 'Kinshasa Centre', score: 97, trend: 'up', reports: 12, status: 'Conforme' },
-    { name: 'Gombe Succursale', score: 84, trend: 'up', reports: 9, status: 'Conforme' },
-    { name: 'Lubumbashi', score: 71, trend: 'down', reports: 7, status: 'En attente' },
-    { name: 'Matadi', score: 65, trend: 'down', reports: 5, status: 'Non conforme' },
-    { name: 'Kisangani', score: 88, trend: 'up', reports: 11, status: 'Conforme' },
-];
+interface Rapport {
+    id: number;
+    succursale: string;
+    type: string;
+    periode: string;
+    date: string;
+    statut: string;
+}
 
-const recentReports = [
-    { branch: 'Kinshasa Centre', type: 'Rapport mensuel', date: '30 Mars 2026', status: 'Validé', statusColor: 'bg-emerald-500/10 text-emerald-600' },
-    { branch: 'Gombe Succursale', type: 'Rapport trimestriel', date: '29 Mars 2026', status: 'En cours', statusColor: 'bg-amber-500/10 text-amber-600' },
-    { branch: 'Lubumbashi', type: 'Rapport mensuel', date: '28 Mars 2026', status: 'Rejeté', statusColor: 'bg-red-500/10 text-red-600' },
-    { branch: 'Kisangani', type: 'Rapport annuel', date: '27 Mars 2026', status: 'Validé', statusColor: 'bg-emerald-500/10 text-emerald-600' },
-    { branch: 'Matadi', type: 'Rapport mensuel', date: '26 Mars 2026', status: 'En attente', statusColor: 'bg-blue-500/10 text-blue-600' },
-];
+interface Alerte {
+    type: string;
+    succursale: string;
+    score: number;
+}
 
-const monthlyData = [
-    { month: 'Oct', depot: 32, credit: 18, resultat: 4.2 },
-    { month: 'Nov', depot: 34, credit: 19, resultat: 4.0 },
-    { month: 'Dec', depot: 35, credit: 20, resultat: 4.5 },
-    { month: 'Jan', depot: 36, credit: 20.5, resultat: 4.3 },
-    { month: 'Fév', depot: 37, credit: 21, resultat: 4.6 },
-    { month: 'Mar', depot: 38.2, credit: 21.9, resultat: 4.8 },
-];
+interface PageProps {
+    auth: {
+        user: {
+            id: number;
+            name: string;
+            role: string;
+        };
+    };
+    kpisGlobaux: {
+        resultat_net: number;
+        depots_clients: number;
+        credits_accordes: number;
+        taux_recouvrement: number;
+    };
+    evolution: {
+        resultat_net: number;
+        depots: number;
+        credits: number;
+        recouvrement: number;
+    };
+    succursales: Succursale[];
+    rapportsRecents: Rapport[];
+    alertes: Alerte[];
+    mesDonnees: {
+        resultat_net: number;
+        depots: number;
+        credits: number;
+        ratio_recouvrement: number;
+        kpi: {
+            score_performance: number;
+        };
+    } | null;
+    moisActuel: string;
+}
 
-// ─── Composant barre chart inline SVG ─────────────────────────────────────────
 function MiniBarChart({ data }: { data: { month: string; depot: number; credit: number }[] }) {
     const maxVal = Math.max(...data.map((d) => d.depot));
     return (
@@ -113,7 +101,6 @@ function MiniBarChart({ data }: { data: { month: string; depot: number; credit: 
     );
 }
 
-// ─── Score ring ────────────────────────────────────────────────────────────────
 function ScoreRing({ score }: { score: number }) {
     const radius = 18;
     const circ = 2 * Math.PI * radius;
@@ -138,19 +125,81 @@ function ScoreRing({ score }: { score: number }) {
     );
 }
 
-// ─── Dashboard page ────────────────────────────────────────────────────────────
 export default function Dashboard() {
-    const { auth } = usePage<{ auth: Auth }>().props;
+    const { auth, kpisGlobaux, evolution, succursales, rapportsRecents, alertes, moisActuel } = usePage<PageProps>().props;
     const userName = auth?.user?.name ?? 'Utilisateur';
     const now = new Date();
     const dateStr = now.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Données pour le graphique (mockées car on n'a pas l'historique mensuel complet)
+    const monthlyData = [
+        { month: 'Oct', depot: 32, credit: 18, resultat: 4.2 },
+        { month: 'Nov', depot: 34, credit: 19, resultat: 4.0 },
+        { month: 'Dec', depot: 35, credit: 20, resultat: 4.5 },
+        { month: 'Jan', depot: 36, credit: 20.5, resultat: 4.3 },
+        { month: 'Fév', depot: 37, credit: 21, resultat: 4.6 },
+        { month: 'Mar', depot: kpisGlobaux.depots_clients / 1000000, credit: kpisGlobaux.credits_accordes / 1000000, resultat: kpisGlobaux.resultat_net / 1000000 },
+    ];
+
+    const kpiCards = [
+        {
+            title: 'Résultat Net',
+            value: (kpisGlobaux.resultat_net / 1000000).toFixed(2) + 'M',
+            currency: 'USD',
+            change: evolution.resultat_net,
+            icon: DollarSign,
+            color: 'text-emerald-500',
+            bg: 'bg-emerald-500/10',
+            border: 'border-emerald-500/20',
+        },
+        {
+            title: 'Dépôts Clients',
+            value: (kpisGlobaux.depots_clients / 1000000).toFixed(1) + 'M',
+            currency: 'USD',
+            change: evolution.depots,
+            icon: Users,
+            color: 'text-blue-500',
+            bg: 'bg-blue-500/10',
+            border: 'border-blue-500/20',
+        },
+        {
+            title: 'Crédits Accordés',
+            value: (kpisGlobaux.credits_accordes / 1000000).toFixed(1) + 'M',
+            currency: 'USD',
+            change: evolution.credits,
+            icon: BarChart3,
+            color: 'text-amber-500',
+            bg: 'bg-amber-500/10',
+            border: 'border-amber-500/20',
+        },
+        {
+            title: 'Taux de Recouvrement',
+            value: kpisGlobaux.taux_recouvrement.toFixed(1),
+            currency: '%',
+            change: evolution.recouvrement,
+            icon: Activity,
+            color: 'text-violet-500',
+            bg: 'bg-violet-500/10',
+            border: 'border-violet-500/20',
+        },
+    ];
+
+    const getAlerteLabel = (type: string) => {
+        switch (type) {
+            case 'risque_eleve': return 'Risque élevé';
+            case 'liquidite_faible': return 'Liquidité faible';
+            case 'rentabilite_negative': return 'Rentabilité négative';
+            case 'cout_exploitation_eleve': return 'Coût élevé';
+            default: return type;
+        }
+    };
 
     return (
         <>
             <Head title="Tableau de bord — KPIbank" />
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-6">
 
-                {/* ── Header ─────────────────────────────────────── */}
+                {/* Header */}
                 <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">
@@ -163,14 +212,30 @@ export default function Dashboard() {
                             <CheckCircle2 className="size-3" />
                             Système opérationnel
                         </Badge>
-                        <Badge variant="outline" className="gap-1.5 border-amber-500/40 bg-amber-500/10 text-amber-600">
-                            <Clock className="size-3" />
-                            3 rapports en attente
-                        </Badge>
+                        {alertes.length > 0 && (
+                            <Badge variant="outline" className="gap-1.5 border-red-500/40 bg-red-500/10 text-red-600">
+                                <AlertCircle className="size-3" />
+                                {alertes.length} alertes
+                            </Badge>
+                        )}
                     </div>
                 </div>
 
-                {/* ── KPI Cards ──────────────────────────────────── */}
+                {/* Alertes */}
+                {alertes.length > 0 && (
+                    <div className="grid gap-2">
+                        {alertes.map((alerte, i) => (
+                            <div key={i} className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <AlertCircle className="size-4 text-red-500" />
+                                <span className="text-sm text-red-700">
+                                    <strong>{alerte.succursale}</strong>: {getAlerteLabel(alerte.type)} (Score: {alerte.score?.toFixed(1)}%)
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* KPI Cards */}
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     {kpiCards.map((kpi) => {
                         const Icon = kpi.icon;
@@ -212,7 +277,7 @@ export default function Dashboard() {
                     })}
                 </div>
 
-                {/* ── Main row: Chart + Branches ─────────────────── */}
+                {/* Main row: Chart + Branches */}
                 <div className="grid gap-4 lg:grid-cols-5">
 
                     {/* Mini bar chart */}
@@ -235,7 +300,7 @@ export default function Dashboard() {
                                 {monthlyData.slice(-3).map((d) => (
                                     <div key={d.month} className="rounded-lg bg-muted/40 px-3 py-2 text-center">
                                         <p className="text-xs text-muted-foreground">{d.month}</p>
-                                        <p className="text-sm font-semibold tabular-nums">{d.resultat}M</p>
+                                        <p className="text-sm font-semibold tabular-nums">{d.resultat.toFixed(1)}M</p>
                                         <p className="text-[10px] text-muted-foreground">Résultat</p>
                                     </div>
                                 ))}
@@ -250,39 +315,43 @@ export default function Dashboard() {
                                 <Building2 className="size-4 text-muted-foreground" />
                                 Succursales
                             </CardTitle>
-                            <CardDescription className="text-xs">Score de performance Q1 2026</CardDescription>
+                            <CardDescription className="text-xs">Score de performance {moisActuel}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            {branchPerformances.map((branch) => (
-                                <div key={branch.name} className="flex items-center gap-3 group">
-                                    <ScoreRing score={branch.score} />
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between">
-                                            <p className="text-sm font-medium truncate">{branch.name}</p>
-                                            <span className="text-sm font-bold tabular-nums">{branch.score}%</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-0.5">
-                                            <span className={`text-[10px] px-1.5 py-0.5 rounded-sm font-medium ${branch.status === 'Conforme' ? 'bg-emerald-500/10 text-emerald-600' :
-                                                    branch.status === 'En attente' ? 'bg-amber-500/10 text-amber-600' :
+                            {succursales.length === 0 ? (
+                                <p className="text-sm text-muted-foreground text-center py-8">
+                                    Aucune succursale avec données pour ce mois
+                                </p>
+                            ) : (
+                                succursales.map((branch) => (
+                                    <div key={branch.id} className="flex items-center gap-3 group">
+                                        <ScoreRing score={branch.score} />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-sm font-medium truncate">{branch.nom}</p>
+                                                <span className="text-sm font-bold tabular-nums">{branch.score.toFixed(0)}%</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <span className={`text-[10px] px-1.5 py-0.5 rounded-sm font-medium ${
+                                                    branch.statut === 'Conforme' ? 'bg-emerald-500/10 text-emerald-600' :
+                                                    branch.statut === 'En attente' ? 'bg-amber-500/10 text-amber-600' :
                                                         'bg-red-500/10 text-red-600'
                                                 }`}>
-                                                {branch.status}
-                                            </span>
-                                            <span className="text-[10px] text-muted-foreground">{branch.reports} rapports</span>
-                                            {branch.trend === 'up' ? (
-                                                <TrendingUp className="size-3 text-emerald-500" />
-                                            ) : (
-                                                <TrendingDown className="size-3 text-red-500" />
-                                            )}
+                                                    {branch.statut}
+                                                </span>
+                                                {branch.alertes?.length > 0 && (
+                                                    <AlertCircle className="size-3 text-red-500" />
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* ── Recent Reports ─────────────────────────────── */}
+                {/* Recent Reports */}
                 <Card className="shadow-none">
                     <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
@@ -293,10 +362,6 @@ export default function Dashboard() {
                                 </CardTitle>
                                 <CardDescription className="text-xs">Derniers rapports soumis par les succursales</CardDescription>
                             </div>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <AlertCircle className="size-3 text-amber-500" />
-                                <span>3 nécessitent une action</span>
-                            </div>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -306,23 +371,35 @@ export default function Dashboard() {
                                     <tr className="border-b bg-muted/30">
                                         <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Succursale</th>
                                         <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Type</th>
-                                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</th>
+                                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Période</th>
                                         <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Statut</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y">
-                                    {recentReports.map((report, i) => (
-                                        <tr key={i} className="hover:bg-muted/20 transition-colors">
-                                            <td className="px-4 py-3 font-medium">{report.branch}</td>
-                                            <td className="px-4 py-3 text-muted-foreground">{report.type}</td>
-                                            <td className="px-4 py-3 text-muted-foreground">{report.date}</td>
-                                            <td className="px-4 py-3">
-                                                <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${report.statusColor}`}>
-                                                    {report.status}
-                                                </span>
+                                    {rapportsRecents.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                                                Aucun rapport récent
                                             </td>
                                         </tr>
-                                    ))}
+                                    ) : (
+                                        rapportsRecents.map((report, i) => (
+                                            <tr key={i} className="hover:bg-muted/20 transition-colors">
+                                                <td className="px-4 py-3 font-medium">{report.succursale}</td>
+                                                <td className="px-4 py-3 text-muted-foreground">{report.type}</td>
+                                                <td className="px-4 py-3 text-muted-foreground">{report.periode}</td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
+                                                        report.statut === 'valide' ? 'bg-emerald-500/10 text-emerald-600' :
+                                                        report.statut === 'soumis' ? 'bg-blue-500/10 text-blue-600' :
+                                                        'bg-amber-500/10 text-amber-600'
+                                                    }`}>
+                                                        {report.statut}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>
