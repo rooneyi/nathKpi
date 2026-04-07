@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { dashboard } from '@/routes';
+import { store as succursaleStore } from '@/routes/succursale';
 import { AlertCircle, CheckCircle2, History, Save, Send, FileText, TrendingUp, TrendingDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -82,7 +83,7 @@ export default function SaisieDonnees() {
 
     const handleSubmit = (action: 'save' | 'submit') => {
         setData('action', action);
-        post(route('succursale.store'), {
+        post(succursaleStore().url, {
             onSuccess: () => {
                 if (action === 'submit') {
                     setShowKpi(true);

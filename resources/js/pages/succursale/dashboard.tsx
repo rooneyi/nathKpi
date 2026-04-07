@@ -217,7 +217,7 @@ export default function DashboardSuccursale() {
                                 </div>
                             </div>
                             <Button asChild variant="outline" className="gap-2">
-                                <a href={saisie()}>
+                                <a href={saisie().url}>
                                     <Edit3 className="size-4" />
                                     Modifier les données
                                 </a>
@@ -265,7 +265,7 @@ export default function DashboardSuccursale() {
                                 </p>
                             </div>
                             <Button asChild className="gap-2">
-                                <a href={saisie()}>
+                                <a href={saisie().url}>
                                     <Edit3 className="size-4" />
                                     Saisir les données
                                 </a>
@@ -283,7 +283,7 @@ export default function DashboardSuccursale() {
                                 Historique des saisies
                             </CardTitle>
                             <Button asChild variant="ghost" size="sm">
-                                <a href={historique()}>Voir tout</a>
+                                <a href={historique().url}>Voir tout</a>
                             </Button>
                         </div>
                     </CardHeader>
