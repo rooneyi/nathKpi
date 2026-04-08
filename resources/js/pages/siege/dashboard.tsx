@@ -101,6 +101,12 @@ export default function DashboardSiege() {
     const { auth, succursales, rapportsEnAttente, statsGlobales, comparatifMensuel, moisActuel } = usePage<PageProps>().props;
     const userName = auth?.user?.name ?? 'Utilisateur';
 
+    // Normalisation des valeurs numériques pour éviter les erreurs runtime (toFixed sur string/null)
+    const scoreMoyenActuel = Number(comparatifMensuel?.score_moyen_actuel ?? 0) || 0;
+    const scoreMoyenPrecedent = Number(comparatifMensuel?.score_moyen_precedent ?? 0) || 0;
+    const nbAlertesActuel = Number(comparatifMensuel?.nb_alertes_actuel ?? 0) || 0;
+    const nbAlertesPrecedent = Number(comparatifMensuel?.nb_alertes_precedent ?? 0) || 0;
+
     const [isRejectOpen, setIsRejectOpen] = useState(false);
     const [selectedRapport, setSelectedRapport] = useState<RapportEnAttente | null>(null);
     const [motifRejet, setMotifRejet] = useState('');
@@ -251,16 +257,16 @@ export default function DashboardSiege() {
                         <CardContent>
                             <div className="flex items-center gap-4">
                                 <div className="text-center">
-                                    <p className="text-3xl font-bold">{comparatifMensuel.score_moyen_actuel.toFixed(1)}%</p>
+                                    <p className="text-3xl font-bold">{scoreMoyenActuel.toFixed(1)}%</p>
                                     <p className="text-xs text-muted-foreground">{moisActuel}</p>
                                 </div>
                                 <div className="flex-1 h-px bg-border" />
                                 <div className="text-center">
-                                    <p className="text-2xl font-medium text-muted-foreground">{comparatifMensuel.score_moyen_precedent.toFixed(1)}%</p>
+                                    <p className="text-2xl font-medium text-muted-foreground">{scoreMoyenPrecedent.toFixed(1)}%</p>
                                     <p className="text-xs text-muted-foreground">Mois précédent</p>
                                 </div>
-                                <div className={`flex items-center ${comparatifMensuel.score_moyen_actuel >= comparatifMensuel.score_moyen_precedent ? 'text-emerald-600' : 'text-red-600'}`}>
-                                    {comparatifMensuel.score_moyen_actuel >= comparatifMensuel.score_moyen_precedent ? <TrendingUp className="size-5" /> : <TrendingDown className="size-5" />}
+                                <div className={`flex items-center ${scoreMoyenActuel >= scoreMoyenPrecedent ? 'text-emerald-600' : 'text-red-600'}`}>
+                                    {scoreMoyenActuel >= scoreMoyenPrecedent ? <TrendingUp className="size-5" /> : <TrendingDown className="size-5" />}
                                 </div>
                             </div>
                         </CardContent>
@@ -274,14 +280,14 @@ export default function DashboardSiege() {
                         <CardContent>
                             <div className="flex items-center gap-4">
                                 <div className="text-center">
-                                    <p className={`text-3xl font-bold ${comparatifMensuel.nb_alertes_actuel > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                                        {comparatifMensuel.nb_alertes_actuel}
+                                    <p className={`text-3xl font-bold ${nbAlertesActuel > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                                        {nbAlertesActuel}
                                     </p>
                                     <p className="text-xs text-muted-foreground">{moisActuel}</p>
                                 </div>
                                 <div className="flex-1 h-px bg-border" />
                                 <div className="text-center">
-                                    <p className="text-2xl font-medium text-muted-foreground">{comparatifMensuel.nb_alertes_precedent}</p>
+                                    <p className="text-2xl font-medium text-muted-foreground">{nbAlertesPrecedent}</p>
                                     <p className="text-xs text-muted-foreground">Mois précédent</p>
                                 </div>
                             </div>
@@ -306,23 +312,26 @@ export default function DashboardSiege() {
                                     Aucune succursale avec données pour ce mois
                                 </p>
                             ) : (
-                                succursales.map((branch) => (
-                                    <div key={branch.id} className="flex items-center gap-3 group">
-                                        <ScoreRing score={branch.score} />
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-sm font-medium truncate">{branch.nom}</p>
-                                                <span className="text-sm font-bold tabular-nums">{branch.score.toFixed(0)}%</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 mt-0.5">
-                                                {getStatutBadge(branch.statut)}
-                                                {branch.alertes?.length > 0 && (
-                                                    <AlertCircle className="size-3 text-red-500" />
-                                                )}
+                                succursales.map((branch) => {
+                                    const score = Number(branch.score ?? 0) || 0;
+                                    return (
+                                        <div key={branch.id} className="flex items-center gap-3 group">
+                                            <ScoreRing score={score} />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between">
+                                                    <p className="text-sm font-medium truncate">{branch.nom}</p>
+                                                    <span className="text-sm font-bold tabular-nums">{score.toFixed(0)}%</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    {getStatutBadge(branch.statut)}
+                                                    {branch.alertes?.length > 0 && (
+                                                        <AlertCircle className="size-3 text-red-500" />
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </CardContent>
                     </Card>

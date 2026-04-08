@@ -75,6 +75,7 @@ function ScoreRing({ score }: { score: number }) {
     const circ = 2 * Math.PI * radius;
     const offset = circ - (score / 100) * circ;
     const color = score >= 85 ? '#10b981' : score >= 70 ? '#f59e0b' : '#ef4444';
+
     return (
         <svg width="80" height="80" className="transform -rotate-90">
             <circle cx="40" cy="40" r={radius} strokeWidth="6" className="stroke-muted fill-none" />
@@ -99,10 +100,31 @@ export default function DashboardSuccursale() {
     const attentions = rawAttentions ?? [];
     const userName = auth?.user?.name ?? 'Utilisateur';
 
+    // Normalisation des valeurs numériques pour éviter les erreurs runtime (toFixed sur string/null)
+    const resultatNet = Number(mesDonnees?.resultat_net ?? 0) || 0;
+    const depots = Number(mesDonnees?.depots ?? 0) || 0;
+    const credits = Number(mesDonnees?.credits ?? 0) || 0;
+    const ratioRecouvrement = Number(mesDonnees?.ratio_recouvrement ?? 0) || 0;
+
+    const historiqueListe: HistoriqueItem[] = (historiqueDonnees ?? []).map((item) => ({
+        ...item,
+        resultat_net: Number(item.resultat_net ?? 0) || 0,
+        score: Number(item.score ?? 0) || 0,
+    }));
+
+    const kpi = mesDonnees?.kpi
+        ? {
+            score: Number(mesDonnees.kpi.score_performance) || 0,
+            roe: Number(mesDonnees.kpi.roe) || 0,
+            ratioCreditsDepots: Number(mesDonnees.kpi.ratio_credits_depots) || 0,
+            ratioCreancesDouteuses: Number(mesDonnees.kpi.ratio_creances_douteuses) || 0,
+        }
+        : null;
+
     const kpiCards = mesDonnees ? [
         {
             title: 'Résultat Net',
-            value: (mesDonnees.resultat_net / 1000000).toFixed(2) + 'M',
+            value: (resultatNet / 1000000).toFixed(2) + 'M',
             currency: 'USD',
             icon: DollarSign,
             color: 'text-emerald-500',
@@ -111,7 +133,7 @@ export default function DashboardSuccursale() {
         },
         {
             title: 'Dépôts Collectés',
-            value: (mesDonnees.depots / 1000000).toFixed(1) + 'M',
+            value: (depots / 1000000).toFixed(1) + 'M',
             currency: 'USD',
             icon: Users,
             color: 'text-blue-500',
@@ -120,7 +142,7 @@ export default function DashboardSuccursale() {
         },
         {
             title: 'Crédits Accordés',
-            value: (mesDonnees.credits / 1000000).toFixed(1) + 'M',
+            value: (credits / 1000000).toFixed(1) + 'M',
             currency: 'USD',
             icon: BarChart3,
             color: 'text-amber-500',
@@ -129,7 +151,7 @@ export default function DashboardSuccursale() {
         },
         {
             title: 'Ratio Recouvrement',
-            value: mesDonnees.ratio_recouvrement.toFixed(1),
+            value: ratioRecouvrement.toFixed(1),
             currency: '%',
             icon: Activity,
             color: 'text-violet-500',
@@ -193,27 +215,27 @@ export default function DashboardSuccursale() {
                 )}
 
                 {/* Score de performance */}
-                {mesDonnees?.kpi && (
+                {kpi && (
                     <Card className="border-primary/20 shadow-none">
                         <CardContent className="flex items-center gap-6 py-6">
                             <div className="relative">
-                                <ScoreRing score={mesDonnees.kpi.score_performance} />
+                                <ScoreRing score={kpi.score} />
                                 <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                    <span className="text-xl font-bold">{mesDonnees.kpi.score_performance.toFixed(0)}</span>
+                                    <span className="text-xl font-bold">{kpi.score.toFixed(0)}</span>
                                     <span className="text-[10px] text-muted-foreground">/100</span>
                                 </div>
                             </div>
                             <div className="flex-1">
                                 <h3 className="text-lg font-semibold">Score de Performance</h3>
                                 <p className="text-sm text-muted-foreground">
-                                    {mesDonnees.kpi.score_performance >= 85 ? 'Performance excellente' :
-                                     mesDonnees.kpi.score_performance >= 70 ? 'Performance acceptable' :
+                                    {kpi.score >= 85 ? 'Performance excellente' :
+                                     kpi.score >= 70 ? 'Performance acceptable' :
                                      'Performance à améliorer'}
                                 </p>
                                 <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
-                                    <span>ROE: {(mesDonnees.kpi.roe * 100).toFixed(1)}%</span>
-                                    <span>Crédits/Dépôts: {(mesDonnees.kpi.ratio_credits_depots * 100).toFixed(1)}%</span>
-                                    <span>Créances douteuses: {(mesDonnees.kpi.ratio_creances_douteuses * 100).toFixed(1)}%</span>
+                                    <span>ROE: {(kpi.roe * 100).toFixed(1)}%</span>
+                                    <span>Crédits/Dépôts: {(kpi.ratioCreditsDepots * 100).toFixed(1)}%</span>
+                                    <span>Créances douteuses: {(kpi.ratioCreancesDouteuses * 100).toFixed(1)}%</span>
                                 </div>
                             </div>
                             <Button asChild variant="outline" className="gap-2">
@@ -288,7 +310,7 @@ export default function DashboardSuccursale() {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        {historiqueDonnees.length === 0 ? (
+                        {historiqueListe.length === 0 ? (
                             <p className="text-sm text-muted-foreground text-center py-8">
                                 Aucun historique disponible
                             </p>
@@ -304,7 +326,7 @@ export default function DashboardSuccursale() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
-                                        {historiqueDonnees.map((item, i) => (
+                                        {historiqueListe.map((item, i) => (
                                             <tr key={i} className="hover:bg-muted/20">
                                                 <td className="px-4 py-3 font-medium">{item.periode}</td>
                                                 <td className="px-4 py-3 text-right">{(item.resultat_net / 1000000).toFixed(2)}M USD</td>
