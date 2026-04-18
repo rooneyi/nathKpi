@@ -19,7 +19,7 @@ export default function SiegeRapports() {
 
     const handleGeneratePDF = () => {
         const params = new URLSearchParams();
-        if (periode) params.append('periode', periode);
+        if (periode) params.append('period', periode);
         params.append('type', typeRapport);
         window.open(`/reports/generate-pdf?${params.toString()}`, '_blank');
     };
